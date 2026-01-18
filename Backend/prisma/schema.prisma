@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Shop {
+  id          String     @id
+  domain      String     @unique
+  accessToken String
+  plan        String     @default("free")
+  campaigns   Campaign[]
+  createdAt   DateTime   @default(now())
+}
+
+model Campaign {
+  id           String         @id @default(cuid())
+  shopId       String
+  shop         Shop           @relation(fields: [shopId], references: [id])
+  name         String
+  active       Boolean        @default(true)
+  prizes       Prize[]
+  discountCodes DiscountCode[]
+  spins        Spin[]
+  settings     Json
+  createdAt    DateTime       @default(now())
+}
+
+model Prize {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  label      String
+  value      Float
+  type       String
+  probability Float
+  color      String
+}
+
+model DiscountCode {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  email      String?
+  claimed    Boolean  @default(false)
+  claimedAt  DateTime?
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  campaignId String
+  expiresAt  DateTime
+}
+
+model Spin {
+  id         String   @id @default(cuid())
+  email      String
+  prizeWon   String
+  code       String?
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  campaignId String
+  createdAt  DateTime @default(now())
+}
